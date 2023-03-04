@@ -1,74 +1,63 @@
 import socket
 import os
 
-# Clear the terminal screen
-os.system('clear')
+# Set up color codes
+green = '\033[32m'
+red = '\033[31m'
+yellow = '\033[33m'
+end = '\033[0m'
 
-# Define color codes for printing to the terminal
-GREEN = '\033[32m'
-RED = '\033[31m'
-YELLOW = '\033[33m'
-RESET = '\033[0m'
+# Print header
+print(f"{yellow}==================================================")
+print("          PORT SCANNER - By Tabish M.")
+print("==================================================\n")
+print("Please select the type of scan you'd like to perform:\n")
 
-# Print welcome message and options to the terminal
-print(f"{GREEN}{'='*30}\nWelcome to the Port Scanner!\n{'='*30}{RESET}\n")
-print(f"{YELLOW}Please select the type of port scan you'd like to perform:\n{'-'*60}")
-print(f"1) TCP Ports\n2) UDP Ports\n3) Gaming Ports\n{'-'*60}{RESET}")
+# Print options
+print(f"{yellow}[1] TCP")
+print("[2] UDP")
+print("[3] Game Ports{end}\n")
 
-# Get user input for the type of port scan to perform
-scan_type = input(f"{YELLOW}Enter the number of the scan type you'd like to perform: {RESET}")
+# Get user input for scan type
+scan_type = input("Enter selection: ")
 
-# Get the target IP address from the user
-target_host = input(f"{YELLOW}Enter the IP address you'd like to scan: {RESET}")
+# Get target IP address from user
+target = input("\nEnter target IP address: ")
 
-# Define the port ranges to scan based on the user's selected scan type
-if scan_type == '1':  # TCP Ports
-    port_range = range(1, 65536)
-    scan_name = 'TCP'
-elif scan_type == '2':  # UDP Ports
-    port_range = range(1, 65536)
-    scan_name = 'UDP'
-elif scan_type == '3':  # Gaming Ports
-    port_range = [22, 80, 443, 27015, 27016, 27017, 27018, 27019, 28015, 28016, 28017, 28018, 28019, 28020]
-    scan_name = 'Gaming'
+# Set up color code for selected scan type
+if scan_type == '1':
+    scan_color = green
+    protocol = 'TCP'
+elif scan_type == '2':
+    scan_color = red
+    protocol = 'UDP'
+elif scan_type == '3':
+    scan_color = yellow
+    protocol = 'Game Ports'
 
-# Clear the terminal screen
-os.system('clear')
+# Print scan type and target IP address
+print(f"\nScanning for {scan_color}{protocol}{end} on {target}...\n")
 
-# Print the scan name and target IP address to the terminal
-print(f"{GREEN}{'='*30}\n{scan_name} Port Scan Results for {target_host}\n{'='*30}{RESET}\n")
+# Set up list of common game ports
+game_ports = [27015, 27016, 27017, 7777, 7778, 7779, 7780, 7781, 7782, 7783, 27960, 28960]
 
-# Loop over the port range and attempt to connect to each port on the target IP address
-for port in port_range:
-    try:
-        # Create a new socket and attempt to connect to the target IP address on the current port
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM if scan_type == '1' else socket.SOCK_DGRAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((target_host, port))
-        
-        # Print the port status and name to the terminal based on whether it's open or closed
-        if result == 0:
-            print(f"{GREEN}[+] {port}: Open - {get_service_name(port)}{RESET}")
+# Loop through ports and check if they are open
+for port in range(1, 65536):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.1)
+    result = s.connect_ex((target, port))
+    if result == 0:
+        if int(port) in game_ports:
+            service = "Game Port"
         else:
-            print(f"{RED}[-] {port}: Closed{RESET}")
-        
-        # Close the socket connection
-        sock.close()
-    except KeyboardInterrupt:
-        print(f"\n{YELLOW}[*] User requested exit. Exiting...{RESET}")
-        exit()
-    except socket.gaierror:
-        print(f"{RED}[-] Hostname could not be resolved. Exiting...{RESET}")
-        exit()
-    except socket.error:
-        print(f"{RED}[-] Couldn't connect to server. Exiting...{RESET}")
-        exit()
-        
-def get_service_name(port):
-    if port == 22:
-        return "SSH"
-    elif port == 80 or port == 8080:
-        return "HTTP"
-    elif port == 443:
-        return "HTTPS"
-    elif port == 27015 or port == 27016 or port == 27017
+            try:
+                service = socket.getservbyport(port)
+            except:
+                service = "Unknown"
+        print(f"{green}[+] Port {port} is open ({service}){end}")
+    else:
+        print(f"{red}[-] Port {port} is closed{end}")
+    s.close()
+
+# Print completion message
+print(f"\n{yellow}Scan complete!{end}")
