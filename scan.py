@@ -1,63 +1,18 @@
-import socket
-import os
+import requests
 
-# Set up color codes
-green = '\033[32m'
-red = '\033[31m'
-yellow = '\033[33m'
-end = '\033[0m'
+credit_card_number = input("Enter your credit card number: ")
+expire_date = input("Enter your expiration date (MM/YY): ")
+cvv = input("Enter your CVV code: ")
 
-# Print header
-print(f"{yellow}==================================================")
-print("          PORT SCANNER - By Tabish M.")
-print("==================================================\n")
-print("Please select the type of scan you'd like to perform:\n")
+payload = {
+    "cardnumber": credit_card_number,
+    "exp-date": expire_date,
+    "cvc": cvv
+}
 
-# Print options
-print(f"{yellow}[1] TCP")
-print("[2] UDP")
-print("[3] Game Ports{end}\n")
+response = requests.post("https://checkout.stripe.com/c/pay/cs_live_a1cXLyjRUQTpkU6yQkHLAJE9k1ppzSNkF414xBYaefbilCsVJ5NiANb91k#fidkdWxOYHwnPyd1blppbHNgWkJpXElMcWQzUm90RER2NFRjNnRIb1c3bjU1d3NGNjJGfXEnKSdobGF2Jz9%2BJ2JwbGEnPydLRCcpJ2hwbGEnPydLRCcpJ3ZsYSc%2FJ0tEJ3gpJ2dgcWR2Jz9eWCknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknd2BjYHd3YHdKd2xibGsnPydtcXF1dj8qKm9wbGZ8dmh2K2ZqaCd4JSUl", data=payload)
 
-# Get user input for scan type
-scan_type = input("Enter selection: ")
-
-# Get target IP address from user
-target = input("\nEnter target IP address: ")
-
-# Set up color code for selected scan type
-if scan_type == '1':
-    scan_color = green
-    protocol = 'TCP'
-elif scan_type == '2':
-    scan_color = red
-    protocol = 'UDP'
-elif scan_type == '3':
-    scan_color = yellow
-    protocol = 'Game Ports'
-
-# Print scan type and target IP address
-print(f"\nScanning for {scan_color}{protocol}{end} on {target}...\n")
-
-# Set up list of common game ports
-game_ports = [27015, 27016, 27017, 7777, 7778, 7779, 7780, 7781, 7782, 7783, 27960, 28960]
-
-# Loop through ports and check if they are open
-for port in range(1, 65536):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(0.1)
-    result = s.connect_ex((target, port))
-    if result == 0:
-        if int(port) in game_ports:
-            service = "Game Port"
-        else:
-            try:
-                service = socket.getservbyport(port)
-            except:
-                service = "Unknown"
-        print(f"{green}[+] Port {port} is open ({service}){end}")
-    else:
-        print(f"{red}[-] Port {port} is closed{end}")
-    s.close()
-
-# Print completion message
-print(f"\n{yellow}Scan complete!{end}")
+if response.status_code == 200:
+    print("Payment successful!")
+else:
+    print("Payment failed. Error code:", response.status_code)
